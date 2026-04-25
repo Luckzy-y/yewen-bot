@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>叶问 · 作物病害诊断助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #f5f9f0;
+            font-family: system-ui, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .app-container {
+            display: flex;
+            height: 100vh;
+        }
+        /* 左侧固定宽度 */
+        .intro {
+            width: 260px;
+            background: rgba(245, 249, 240, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 1.5rem;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            z-index: 1;
+        }
+        .intro h1 {
+            color: #2c5e2e;
+            font-size: 1.8rem;
+            margin: 0.5rem 0;
+        }
+        .intro p {
+            color: #4a6b4a;
+            font-size: 0.9rem;
+            margin: 0.3rem 0;
+        }
+        .badge {
+            background: #e0ebdd;
+            padding: 0.2rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+        /* 让图标🌾变得更大 — 只修改图标大小，其余完全不变 */
+        .intro > div:first-child {
+            font-size: 4rem;        /* 显著增大图标尺寸 */
+            line-height: 1.2;       /* 保持舒适行距，不影响相邻元素间距 */
+            margin-bottom: 0.1rem;  /* 微调视觉平衡，不破坏原有布局结构 */
+        }
+        .right-area {
+            flex: 1;
+            position: relative;
+        }
+        /* 覆盖扣子SDK的悬浮球位置：右侧垂直居中 */
+        .coze-chat-ball {
+            position: fixed !important;
+            right: 30px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            bottom: auto !important;
+        }
+        /* 强制聊天窗口大小 */
+        .coze-chat-window {
+            width: 650px !important;
+            height: 700px !important;
+            right: 30px !important;
+            bottom: auto !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            border-radius: 16px !important;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.2) !important;
+        }
+        /* 移动端适配：保证大图标也适配，但其他样式完全不动 */
+        @media (max-width: 768px) {
+            .coze-chat-window {
+                width: 90% !important;
+                right: 5% !important;
+                left: 5% !important;
+                top: 10% !important;
+                transform: none !important;
+                height: 80% !important;
+            }
+            .coze-chat-ball {
+                right: 15px !important;
+                top: auto !important;
+                bottom: 20px !important;
+                transform: none !important;
+            }
+            .intro {
+                width: 180px;
+                padding: 1rem;
+            }
+            .intro h1 { font-size: 1.2rem; }
+            /* 移动端图标保持醒目但稍微缩减比例，不影响任何其他样式 */
+            .intro > div:first-child {
+                font-size: 3.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="intro">
+        <div>🌾</div>
+        <h1>叶问</h1>
+        <p>作物病害智能诊断助手</p>
+        <div class="badge">📸 支持图片 / 文字</div>
+        <p style="margin-top: 1rem; font-size: 0.85rem;">👉 右侧悬浮球，点击问诊</p>
+    </div>
+    <div class="right-area"></div>
+</div>
+<script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.19/libs/cn/index.js"></script>
+<script>
+    // 【唯一修改点】：包装一个 async 函数来先拿 Token，再启动你的原版 SDK
+    async function initCoze() {
+        try {
+            // 1. 悄悄去 Vercel 后端拿钥匙 (绝对安全)
+            const response = await fetch('/api/getToken');
+            const data = await response.json();
+            const safeToken = data.token; 
+
+            // 2. 原封不动地启动你的 SDK
+            new CozeWebSDK.WebChatClient({
+                config: {
+                    type: 'bot',
+                    bot_id: '7598192873783246882', // 填入你的真实 bot_id
+                    isIframe: false,
+                },
+                auth: {
+                    type: 'token',
+                    token: safeToken, // 【变化】：这里换成动态拿到的 safeToken
+                    onRefreshToken: async () => safeToken // 【变化】：刷新时也用 safeToken
+                },
+                userInfo: {
+                    id: 'user',
+                    url: 'https://lf-coze-web-cdn.coze.cn/obj/eden-cn/lm-lgvj/ljhwZthlaukjlkulzlp/coze/coze-logo.png',
+                    nickname: 'User',
+                },
+                ui: {
+                    asstBtn: { isNeed: true },
+                    chatBot: {
+                        title: '叶问',
+                        uploadable: true,
+                        width: 960,
+                        height: 700
+                    },
+                    header: { isShow: true, isNeedClose: true },
+                    footer: { isShow: false },
+                    base: {
+                        layout: 'pc',
+                        lang: 'zh-CN'
+                    }
+                }
+            });
+            
+            // 3. 完美保留你的额外保险样式注入
+            setTimeout(() => {
+                const style = document.createElement('style');
+                style.textContent = `
+                    .coze-chat-window {
+                        width: 650px !important;
+                        height: 700px !important;
+                        right: 30px !important;
+                        top: 50% !important;
+                        transform: translateY(-50%) !important;
+                        bottom: auto !important;
+                    }
+                    .coze-chat-ball {
+                        right: 30px !important;
+                        top: 50% !important;
+                        transform: translateY(-50%) !important;
+                        bottom: auto !important;
+                    }
+                `;
+                document.head.appendChild(style);
+            }, 500);
+
+        } catch (error) {
+            console.error("获取 Token 或初始化失败:", error);
+        }
+    }
+
+    // 执行初始化
+    initCoze();
+</script>
+</body>
+</html>
+</body>
+</html>
