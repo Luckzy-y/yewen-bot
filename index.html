@@ -32,7 +32,7 @@
             padding: 1.5rem;
             box-shadow: 2px 0 10px rgba(0,0,0,0.05);
             z-index: 1;
-            position: relative; /* 关键：让监控面板以此为基准进行绝对定位 */
+            position: relative; /* 为左上角的监控面板提供定位基准 */
         }
         .intro h1 {
             color: #2c5e2e;
@@ -51,7 +51,6 @@
             font-size: 0.8rem;
             margin-top: 0.5rem;
         }
-        /* 图标🌾样式保持不变 */
         .intro > div:nth-child(2) {
             font-size: 4rem;        
             line-height: 1.2;       
@@ -64,13 +63,13 @@
         }
         
         /* ========================================================= */
-        /* 修改：意图感知监控面板 - 固定在左侧面板左上角，极限紧凑版 */
+        /* 意图感知监控面板：左上角紧凑版 */
         /* ========================================================= */
         .rag-monitor {
             position: absolute;
             top: 15px; 
             left: 10px; 
-            width: 240px; /* 完美嵌入 260px 的侧边栏 */
+            width: 240px; 
             background: rgba(255, 255, 255, 0.95);
             border-radius: 10px;
             padding: 12px;
@@ -78,6 +77,13 @@
             border: 1px solid #e0ebdd;
             pointer-events: none;
             z-index: 10;
+            /* 默认状态可以降低一点透明度，表示在待机 */
+            opacity: 0.6;
+            transition: opacity 0.5s ease;
+        }
+        /* 激活时恢复完全不透明 */
+        .rag-monitor.active-state {
+            opacity: 1;
         }
         .monitor-header {
             font-size: 0.8rem; 
@@ -90,9 +96,14 @@
         .status-dot {
             width: 8px;
             height: 8px;
-            background-color: #4CAF50;
+            background-color: #ccc; /* 待机时灰色 */
             border-radius: 50%;
             margin-right: 6px;
+            transition: all 0.3s ease;
+        }
+        /* 激活时变绿并闪烁 */
+        .rag-monitor.active-state .status-dot {
+            background-color: #4CAF50;
             box-shadow: 0 0 6px #4CAF50;
             animation: pulse 1.5s infinite;
         }
@@ -160,37 +171,22 @@
             box-shadow: 0 8px 28px rgba(0,0,0,0.2) !important;
         }
         @media (max-width: 768px) {
-            .coze-chat-window {
-                width: 90% !important;
-                right: 5% !important;
-                left: 5% !important;
-                top: 10% !important;
-                transform: none !important;
-                height: 80% !important;
-            }
-            .coze-chat-ball {
-                right: 15px !important;
-                top: auto !important;
-                bottom: 20px !important;
-                transform: none !important;
-            }
-            .intro {
-                width: 180px;
-                padding: 1rem;
-            }
+            .coze-chat-window { width: 90% !important; right: 5% !important; left: 5% !important; top: 10% !important; transform: none !important; height: 80% !important; }
+            .coze-chat-ball { right: 15px !important; top: auto !important; bottom: 20px !important; transform: none !important; }
+            .intro { width: 180px; padding: 1rem; }
             .intro h1 { font-size: 1.2rem; }
             .intro > div:nth-child(2) { font-size: 3.2rem; }
-            .rag-monitor { display: none; } /* 移动端隐藏面板 */
+            .rag-monitor { display: none; }
         }
     </style>
 </head>
 <body>
 <div class="app-container">
     <div class="intro">
-        <div class="rag-monitor">
+        <div class="rag-monitor" id="rag-monitor-panel">
             <div class="monitor-header">
                 <div class="status-dot"></div>
-                工作流诊断引擎状态
+                <span id="monitor-title">诊断引擎待机中...</span>
             </div>
             <div class="workflow-box">
                 <div class="wf-node" id="wf-1">📷 视觉特征提取</div>
@@ -211,13 +207,25 @@
         <div class="badge">📸 支持图片 / 文字</div>
         <p style="margin-top: 1rem; font-size: 0.85rem;">👉 右侧悬浮球，点击问诊</p>
     </div>
-    
     <div class="right-area"></div>
 </div>
 
 <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.19/libs/cn/index.js"></script>
 <script>
-    function startWorkflowSimulation() {
+    // =========================================================
+    // 核心逻辑升级：网络层请求劫持 (真联动)
+    // =========================================================
+    let animationInterval = null;
+
+    // 播放动画的函数，只在真正发消息时被调用
+    function triggerRealAnimation() {
+        const monitorPanel = document.getElementById('rag-monitor-panel');
+        const titleText = document.getElementById('monitor-title');
+        
+        // 激活面板状态
+        monitorPanel.classList.add('active-state');
+        titleText.innerText = "diagnosis_main 工作流执行中";
+
         const nodes = [
             document.getElementById('wf-1'),
             document.getElementById('wf-2'),
@@ -231,32 +239,52 @@
             document.getElementById('wf-b3')
         ];
 
-        setInterval(() => {
-            nodes.forEach(n => n && n.classList.remove('node-active'));
-            branches.forEach(b => b.classList.remove('node-active'));
+        // 每次启动前先清空旧的高亮
+        nodes.forEach(n => n && n.classList.remove('node-active'));
+        branches.forEach(b => b.classList.remove('node-active'));
+        if (animationInterval) clearInterval(animationInterval);
 
-            let step = 0;
-            const randomBranchIndex = Math.floor(Math.random() * 3);
+        let step = 0;
+        const randomBranchIndex = Math.floor(Math.random() * 3);
 
-            const interval = setInterval(() => {
-                if (step > 0 && nodes[step - 1]) nodes[step - 1].classList.remove('node-active');
-                if (step === 3) branches.forEach(b => b.classList.remove('node-active'));
+        animationInterval = setInterval(() => {
+            if (step > 0 && nodes[step - 1]) nodes[step - 1].classList.remove('node-active');
+            if (step === 3) branches.forEach(b => b.classList.remove('node-active'));
 
-                if (step === 2) {
-                    branches[randomBranchIndex].classList.add('node-active');
-                } else if (step < 5) {
-                    nodes[step].classList.add('node-active');
-                } else {
-                    nodes[4].classList.remove('node-active');
-                    clearInterval(interval);
-                }
-                step++;
-            }, 800);
-        }, 12000); 
+            if (step === 2) {
+                branches[randomBranchIndex].classList.add('node-active');
+            } else if (step < 5) {
+                nodes[step].classList.add('node-active');
+            } else {
+                nodes[4].classList.remove('node-active');
+                monitorPanel.classList.remove('active-state');
+                titleText.innerText = "诊断完成，引擎待机中...";
+                clearInterval(animationInterval);
+            }
+            step++;
+        }, 1200); // 调整流转速度，适配真实大模型等待时间
     }
-    
-    window.addEventListener('DOMContentLoaded', startWorkflowSimulation);
 
+    // 【技术亮点】劫持浏览器的 fetch API 监听扣子 SDK 的底层通信
+    const originalFetch = window.fetch;
+    window.fetch = async function(...args) {
+        const requestUrl = args[0];
+        
+        // 当监测到 SDK 向扣子发送了真实的聊天请求时，立刻触发大屏流转！
+        if (typeof requestUrl === 'string' && requestUrl.includes('api.coze.cn/v3/chat')) {
+            // 确保不会因为预检请求(OPTIONS)误触发，只在提交数据(POST)时触发
+            const requestInit = args[1];
+            if (requestInit && requestInit.method === 'POST') {
+                console.log("拦截到真实用户提问，触发工作流可视化引擎！");
+                triggerRealAnimation();
+            }
+        }
+        // 放行原始请求，保证对话功能正常
+        return originalFetch.apply(this, args);
+    };
+    // =========================================================
+
+    // SDK 初始化与鉴权逻辑保持不变
     async function initCoze() {
         try {
             const response = await fetch('/api/getToken');
