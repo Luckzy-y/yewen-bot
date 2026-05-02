@@ -50,7 +50,7 @@
             font-size: 0.8rem;
             margin-top: 0.5rem;
         }
-        /* 让图标🌾变得更大 */
+        /* 图标🌾样式保持不变 */
         .intro > div:first-child {
             font-size: 4rem;        
             line-height: 1.2;       
@@ -59,90 +59,90 @@
         .right-area {
             flex: 1;
             position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             background-color: #fcfdfa;
         }
         
         /* ========================================================= */
-        /* 新增：论文 4.4.1 核心亮点 —— 意图感知工作流可视化面板 CSS */
+        /* 修改：移动工作流监控面板至左上角，并使布局更紧凑 */
         /* ========================================================= */
         .rag-monitor {
-            width: 600px;
-            margin-right: 150px; /* 给右侧的聊天窗口留出空间 */
+            position: absolute;
+            top: 20px; /* 距离顶部 20px */
+            left: 20px; /* 距离左侧 20px */
+            width: 320px; /* 紧凑宽度 */
             background: white;
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(44, 94, 46, 0.08);
+            border-radius: 12px;
+            padding: 15px 20px;
+            box-shadow: 0 5px 20px rgba(44, 94, 46, 0.05);
             border: 1px solid #e0ebdd;
             pointer-events: none; /* 防止遮挡用户的点击操作 */
+            z-index: 10; /* 确保在最上层 */
         }
         .monitor-header {
-            font-size: 1.1rem;
+            font-size: 0.9rem; /* 字体减小 */
             color: #2c5e2e;
             font-weight: bold;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
         }
         .status-dot {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             background-color: #4CAF50;
             border-radius: 50%;
-            margin-right: 10px;
-            box-shadow: 0 0 8px #4CAF50;
+            margin-right: 8px;
+            box-shadow: 0 0 6px #4CAF50;
             animation: pulse 1.5s infinite;
         }
         @keyframes pulse {
             0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(76, 175, 80, 0); }
+            70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(76, 175, 80, 0); }
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
         }
         .workflow-box {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 10px; /* 间隔减小 */
         }
         .wf-node {
             background: #f5f9f0;
-            border: 2px dashed #c5d8c6;
-            padding: 12px;
-            border-radius: 8px;
+            border: 1px dashed #c5d8c6; /* 边框变细 */
+            padding: 8px;
+            border-radius: 6px;
             text-align: center;
             color: #666;
-            font-size: 0.95rem;
+            font-size: 0.85rem; /* 字体减小 */
             transition: all 0.4s ease;
         }
         .wf-branches {
             display: flex;
-            gap: 10px;
+            gap: 8px; /* 间隔减小 */
             justify-content: space-between;
         }
         .wf-branch-node {
             flex: 1;
             background: #f5f9f0;
-            border: 2px dashed #c5d8c6;
-            padding: 12px 5px;
-            border-radius: 8px;
+            border: 1px dashed #c5d8c6; /* 边框变细 */
+            padding: 8px 3px;
+            border-radius: 6px;
             text-align: center;
             color: #666;
-            font-size: 0.85rem;
+            font-size: 0.75rem; /* 字体减小 */
             transition: all 0.4s ease;
         }
-        /* 激活状态的高亮特效 */
+        /* 激活状态的高亮特效保持不变 */
         .node-active {
             background: #e8f5e9 !important;
-            border: 2px solid #4CAF50 !important;
-            color: #2c5e2e !important;
+            border: 1px solid #4CAF50 !important;
+            color: #1B5E20 !important;
             font-weight: bold;
             transform: scale(1.02);
-            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
+            box-shadow: 0 4px 10px rgba(76, 175, 80, 0.15);
         }
         /* ========================================================= */
 
-        /* 覆盖扣子SDK的悬浮球位置：右侧垂直居中 */
+        /* 覆盖扣子SDK的悬浮球和窗口位置逻辑不需修改 */
         .coze-chat-ball {
             position: fixed !important;
             right: 30px !important;
@@ -150,7 +150,6 @@
             transform: translateY(-50%) !important;
             bottom: auto !important;
         }
-        /* 强制聊天窗口大小 */
         .coze-chat-window {
             width: 650px !important;
             height: 700px !important;
@@ -183,7 +182,7 @@
             }
             .intro h1 { font-size: 1.2rem; }
             .intro > div:first-child { font-size: 3.2rem; }
-            .rag-monitor { display: none; } /* 移动端空间小，隐藏大屏监控 */
+            .rag-monitor { display: none; } /* 移动端空间小，隐藏监控 */
         }
     </style>
 </head>
@@ -207,12 +206,12 @@
                 <div class="wf-node" id="wf-1">📷 多模态视觉特征提取</div>
                 <div class="wf-node" id="wf-2">🔀 LLM 意图路由分发</div>
                 <div class="wf-branches">
-                    <div class="wf-branch-node" id="wf-b1">🔍 【症状诊断库】</div>
-                    <div class="wf-branch-node" id="wf-b2">🔬 【发病原因库】</div>
-                    <div class="wf-branch-node" id="wf-b3">💊 【防治方案库】</div>
+                    <div class="wf-branch-node" id="wf-b1">🔍症状诊断</div>
+                    <div class="wf-branch-node" id="wf-b2">🔬原因识别</div>
+                    <div class="wf-branch-node" id="wf-b3">💊防治建议</div>
                 </div>
                 <div class="wf-node" id="wf-3">🧠 RAG 检索与上下文对齐</div>
-                <div class="wf-node" id="wf-4">📝 诊断报告润色与生成</div>
+                <div class="wf-node" id="wf-4">📝 诊断报告生成</div>
             </div>
         </div>
     </div>
@@ -221,7 +220,7 @@
 <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.19/libs/cn/index.js"></script>
 <script>
     // =========================================================
-    // 新增：模拟工作流可视化动态点亮的脚本 (配合答辩演示使用)
+    // 模拟脚本保持不变
     // =========================================================
     function startWorkflowSimulation() {
         const nodes = [
@@ -237,14 +236,12 @@
             document.getElementById('wf-b3')
         ];
 
-        // 随机每隔 8-15 秒模拟一次用户提问触发的思考链
         setInterval(() => {
-            // 清理所有高亮
             nodes.forEach(n => n && n.classList.remove('node-active'));
             branches.forEach(b => b.classList.remove('node-active'));
 
             let step = 0;
-            const randomBranchIndex = Math.floor(Math.random() * 3); // 随机激活一个意图库
+            const randomBranchIndex = Math.floor(Math.random() * 3);
 
             const interval = setInterval(() => {
                 if (step > 0 && nodes[step - 1]) nodes[step - 1].classList.remove('node-active');
@@ -259,16 +256,14 @@
                     clearInterval(interval);
                 }
                 step++;
-            }, 800); // 每个节点的思考耗时 0.8 秒
+            }, 800);
         }, 12000); 
     }
     
-    // 页面加载完成后启动模拟器
     window.addEventListener('DOMContentLoaded', startWorkflowSimulation);
     // =========================================================
 
-
-    // 【原始逻辑保持不变】：包装一个 async 函数来先拿 Token，再启动你的原版 SDK
+    // 【原始鉴权和SDK启动逻辑原封不动】
     async function initCoze() {
         try {
             // 1. 悄悄去 Vercel 后端拿钥匙 (绝对安全)
@@ -280,13 +275,13 @@
             new CozeWebSDK.WebChatClient({
                 config: {
                     type: 'bot',
-                    bot_id: '7598192873783246882', // 填入你的真实 bot_id
+                    bot_id: '7598192873783246882', // 你的真实 bot_id
                     isIframe: false,
                 },
                 auth: {
                     type: 'token',
-                    token: safeToken, // 【变化】：这里换成动态拿到的 safeToken
-                    onRefreshToken: async () => safeToken // 【变化】：刷新时也用 safeToken
+                    token: safeToken, 
+                    onRefreshToken: async () => safeToken 
                 },
                 userInfo: {
                     id: 'user',
