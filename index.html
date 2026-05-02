@@ -50,16 +50,98 @@
             font-size: 0.8rem;
             margin-top: 0.5rem;
         }
-        /* 让图标🌾变得更大 — 只修改图标大小，其余完全不变 */
+        /* 让图标🌾变得更大 */
         .intro > div:first-child {
-            font-size: 4rem;        /* 显著增大图标尺寸 */
-            line-height: 1.2;       /* 保持舒适行距，不影响相邻元素间距 */
-            margin-bottom: 0.1rem;  /* 微调视觉平衡，不破坏原有布局结构 */
+            font-size: 4rem;        
+            line-height: 1.2;       
+            margin-bottom: 0.1rem;  
         }
         .right-area {
             flex: 1;
             position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #fcfdfa;
         }
+        
+        /* ========================================================= */
+        /* 新增：论文 4.4.1 核心亮点 —— 意图感知工作流可视化面板 CSS */
+        /* ========================================================= */
+        .rag-monitor {
+            width: 600px;
+            margin-right: 150px; /* 给右侧的聊天窗口留出空间 */
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(44, 94, 46, 0.08);
+            border: 1px solid #e0ebdd;
+            pointer-events: none; /* 防止遮挡用户的点击操作 */
+        }
+        .monitor-header {
+            font-size: 1.1rem;
+            color: #2c5e2e;
+            font-weight: bold;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+            margin-right: 10px;
+            box-shadow: 0 0 8px #4CAF50;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(76, 175, 80, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+        .workflow-box {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .wf-node {
+            background: #f5f9f0;
+            border: 2px dashed #c5d8c6;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            color: #666;
+            font-size: 0.95rem;
+            transition: all 0.4s ease;
+        }
+        .wf-branches {
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+        }
+        .wf-branch-node {
+            flex: 1;
+            background: #f5f9f0;
+            border: 2px dashed #c5d8c6;
+            padding: 12px 5px;
+            border-radius: 8px;
+            text-align: center;
+            color: #666;
+            font-size: 0.85rem;
+            transition: all 0.4s ease;
+        }
+        /* 激活状态的高亮特效 */
+        .node-active {
+            background: #e8f5e9 !important;
+            border: 2px solid #4CAF50 !important;
+            color: #2c5e2e !important;
+            font-weight: bold;
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
+        }
+        /* ========================================================= */
+
         /* 覆盖扣子SDK的悬浮球位置：右侧垂直居中 */
         .coze-chat-ball {
             position: fixed !important;
@@ -79,7 +161,7 @@
             border-radius: 16px !important;
             box-shadow: 0 8px 28px rgba(0,0,0,0.2) !important;
         }
-        /* 移动端适配：保证大图标也适配，但其他样式完全不动 */
+        /* 移动端适配 */
         @media (max-width: 768px) {
             .coze-chat-window {
                 width: 90% !important;
@@ -100,10 +182,8 @@
                 padding: 1rem;
             }
             .intro h1 { font-size: 1.2rem; }
-            /* 移动端图标保持醒目但稍微缩减比例，不影响任何其他样式 */
-            .intro > div:first-child {
-                font-size: 3.2rem;
-            }
+            .intro > div:first-child { font-size: 3.2rem; }
+            .rag-monitor { display: none; } /* 移动端空间小，隐藏大屏监控 */
         }
     </style>
 </head>
@@ -116,11 +196,79 @@
         <div class="badge">📸 支持图片 / 文字</div>
         <p style="margin-top: 1rem; font-size: 0.85rem;">👉 右侧悬浮球，点击问诊</p>
     </div>
-    <div class="right-area"></div>
+    
+    <div class="right-area">
+        <div class="rag-monitor">
+            <div class="monitor-header">
+                <div class="status-dot"></div>
+                核心引擎：diagnosis_main 工作流监控
+            </div>
+            <div class="workflow-box">
+                <div class="wf-node" id="wf-1">📷 多模态视觉特征提取</div>
+                <div class="wf-node" id="wf-2">🔀 LLM 意图路由分发</div>
+                <div class="wf-branches">
+                    <div class="wf-branch-node" id="wf-b1">🔍 【症状诊断库】</div>
+                    <div class="wf-branch-node" id="wf-b2">🔬 【发病原因库】</div>
+                    <div class="wf-branch-node" id="wf-b3">💊 【防治方案库】</div>
+                </div>
+                <div class="wf-node" id="wf-3">🧠 RAG 检索与上下文对齐</div>
+                <div class="wf-node" id="wf-4">📝 诊断报告润色与生成</div>
+            </div>
+        </div>
+    </div>
 </div>
+
 <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.19/libs/cn/index.js"></script>
 <script>
-    // 【唯一修改点】：包装一个 async 函数来先拿 Token，再启动你的原版 SDK
+    // =========================================================
+    // 新增：模拟工作流可视化动态点亮的脚本 (配合答辩演示使用)
+    // =========================================================
+    function startWorkflowSimulation() {
+        const nodes = [
+            document.getElementById('wf-1'),
+            document.getElementById('wf-2'),
+            null, // 占位，给分支用
+            document.getElementById('wf-3'),
+            document.getElementById('wf-4')
+        ];
+        const branches = [
+            document.getElementById('wf-b1'),
+            document.getElementById('wf-b2'),
+            document.getElementById('wf-b3')
+        ];
+
+        // 随机每隔 8-15 秒模拟一次用户提问触发的思考链
+        setInterval(() => {
+            // 清理所有高亮
+            nodes.forEach(n => n && n.classList.remove('node-active'));
+            branches.forEach(b => b.classList.remove('node-active'));
+
+            let step = 0;
+            const randomBranchIndex = Math.floor(Math.random() * 3); // 随机激活一个意图库
+
+            const interval = setInterval(() => {
+                if (step > 0 && nodes[step - 1]) nodes[step - 1].classList.remove('node-active');
+                if (step === 3) branches.forEach(b => b.classList.remove('node-active'));
+
+                if (step === 2) {
+                    branches[randomBranchIndex].classList.add('node-active');
+                } else if (step < 5) {
+                    nodes[step].classList.add('node-active');
+                } else {
+                    nodes[4].classList.remove('node-active');
+                    clearInterval(interval);
+                }
+                step++;
+            }, 800); // 每个节点的思考耗时 0.8 秒
+        }, 12000); 
+    }
+    
+    // 页面加载完成后启动模拟器
+    window.addEventListener('DOMContentLoaded', startWorkflowSimulation);
+    // =========================================================
+
+
+    // 【原始逻辑保持不变】：包装一个 async 函数来先拿 Token，再启动你的原版 SDK
     async function initCoze() {
         try {
             // 1. 悄悄去 Vercel 后端拿钥匙 (绝对安全)
@@ -192,7 +340,5 @@
     // 执行初始化
     initCoze();
 </script>
-</body>
-</html>
 </body>
 </html>
