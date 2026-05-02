@@ -1,228 +1,12 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>叶问 · 作物病害诊断助手</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            background: #f5f9f0;
-            font-family: system-ui, sans-serif;
-            height: 100vh;
-            overflow: hidden;
-        }
-        .app-container {
-            display: flex;
-            height: 100vh;
-        }
-        /* 左侧固定宽度 */
-        .intro {
-            width: 260px;
-            background: rgba(245, 249, 240, 0.9);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 1.5rem;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
-            z-index: 1;
-            position: relative; /* 为左上角的监控面板提供定位基准 */
-        }
-        .intro h1 {
-            color: #2c5e2e;
-            font-size: 1.8rem;
-            margin: 0.5rem 0;
-        }
-        .intro p {
-            color: #4a6b4a;
-            font-size: 0.9rem;
-            margin: 0.3rem 0;
-        }
-        .badge {
-            background: #e0ebdd;
-            padding: 0.2rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            margin-top: 0.5rem;
-        }
-        .intro > div:nth-child(2) {
-            font-size: 4rem;        
-            line-height: 1.2;       
-            margin-bottom: 0.1rem;  
-        }
-        .right-area {
-            flex: 1;
-            position: relative;
-            background-color: #fcfdfa;
-        }
-        
-        /* ========================================================= */
-        /* 意图感知监控面板：左上角紧凑版 */
-        /* ========================================================= */
-        .rag-monitor {
-            position: absolute;
-            top: 15px; 
-            left: 10px; 
-            width: 240px; 
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 10px;
-            padding: 12px;
-            box-shadow: 0 4px 15px rgba(44, 94, 46, 0.06);
-            border: 1px solid #e0ebdd;
-            pointer-events: none;
-            z-index: 10;
-            /* 默认状态可以降低一点透明度，表示在待机 */
-            opacity: 0.6;
-            transition: opacity 0.5s ease;
-        }
-        /* 激活时恢复完全不透明 */
-        .rag-monitor.active-state {
-            opacity: 1;
-        }
-        .monitor-header {
-            font-size: 0.8rem; 
-            color: #2c5e2e;
-            font-weight: bold;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-        }
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background-color: #ccc; /* 待机时灰色 */
-            border-radius: 50%;
-            margin-right: 6px;
-            transition: all 0.3s ease;
-        }
-        /* 激活时变绿并闪烁 */
-        .rag-monitor.active-state .status-dot {
-            background-color: #4CAF50;
-            box-shadow: 0 0 6px #4CAF50;
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(76, 175, 80, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
-        }
-        .workflow-box {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .wf-node {
-            background: #f5f9f0;
-            border: 1px dashed #c5d8c6;
-            padding: 6px;
-            border-radius: 6px;
-            text-align: center;
-            color: #666;
-            font-size: 0.75rem; 
-            transition: all 0.4s ease;
-        }
-        .wf-branches {
-            display: flex;
-            gap: 5px; 
-            justify-content: space-between;
-        }
-        .wf-branch-node {
-            flex: 1;
-            background: #f5f9f0;
-            border: 1px dashed #c5d8c6;
-            padding: 6px 0;
-            border-radius: 4px;
-            text-align: center;
-            color: #666;
-            font-size: 0.65rem; 
-            transition: all 0.4s ease;
-        }
-        .node-active {
-            background: #e8f5e9 !important;
-            border: 1px solid #4CAF50 !important;
-            color: #1B5E20 !important;
-            font-weight: bold;
-            transform: scale(1.02);
-            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.15);
-        }
-        /* ========================================================= */
-
-        .coze-chat-ball {
-            position: fixed !important;
-            right: 30px !important;
-            top: 50% !important;
-            transform: translateY(-50%) !important;
-            bottom: auto !important;
-        }
-        .coze-chat-window {
-            width: 650px !important;
-            height: 700px !important;
-            right: 30px !important;
-            bottom: auto !important;
-            top: 50% !important;
-            transform: translateY(-50%) !important;
-            border-radius: 16px !important;
-            box-shadow: 0 8px 28px rgba(0,0,0,0.2) !important;
-        }
-        @media (max-width: 768px) {
-            .coze-chat-window { width: 90% !important; right: 5% !important; left: 5% !important; top: 10% !important; transform: none !important; height: 80% !important; }
-            .coze-chat-ball { right: 15px !important; top: auto !important; bottom: 20px !important; transform: none !important; }
-            .intro { width: 180px; padding: 1rem; }
-            .intro h1 { font-size: 1.2rem; }
-            .intro > div:nth-child(2) { font-size: 3.2rem; }
-            .rag-monitor { display: none; }
-        }
-    </style>
-</head>
-<body>
-<div class="app-container">
-    <div class="intro">
-        <div class="rag-monitor" id="rag-monitor-panel">
-            <div class="monitor-header">
-                <div class="status-dot"></div>
-                <span id="monitor-title">诊断引擎待机中...</span>
-            </div>
-            <div class="workflow-box">
-                <div class="wf-node" id="wf-1">📷 视觉特征提取</div>
-                <div class="wf-node" id="wf-2">🔀 意图路由分发</div>
-                <div class="wf-branches">
-                    <div class="wf-branch-node" id="wf-b1">🔍症状</div>
-                    <div class="wf-branch-node" id="wf-b2">🔬原因</div>
-                    <div class="wf-branch-node" id="wf-b3">💊防治</div>
-                </div>
-                <div class="wf-node" id="wf-3">🧠 RAG 检索比对</div>
-                <div class="wf-node" id="wf-4">📝 生成诊断报告</div>
-            </div>
-        </div>
-
-        <div>🌾</div>
-        <h1>叶问</h1>
-        <p>作物病害智能诊断助手</p>
-        <div class="badge">📸 支持图片 / 文字</div>
-        <p style="margin-top: 1rem; font-size: 0.85rem;">👉 右侧悬浮球，点击问诊</p>
-    </div>
-    <div class="right-area"></div>
-</div>
-
 <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.19/libs/cn/index.js"></script>
 <script>
-    // =========================================================
-    // 核心逻辑升级：网络层请求劫持 (真联动)
-    // =========================================================
     let animationInterval = null;
 
-    // 播放动画的函数，只在真正发消息时被调用
-    function triggerRealAnimation() {
+    // 接收用户真实提问的内容
+    function triggerRealAnimation(userQuery) {
         const monitorPanel = document.getElementById('rag-monitor-panel');
         const titleText = document.getElementById('monitor-title');
         
-        // 激活面板状态
         monitorPanel.classList.add('active-state');
         titleText.innerText = "diagnosis_main 工作流执行中";
 
@@ -234,25 +18,41 @@
             document.getElementById('wf-4')
         ];
         const branches = [
-            document.getElementById('wf-b1'),
-            document.getElementById('wf-b2'),
-            document.getElementById('wf-b3')
+            document.getElementById('wf-b1'), // 0: 症状
+            document.getElementById('wf-b2'), // 1: 原因
+            document.getElementById('wf-b3')  // 2: 防治
         ];
 
-        // 每次启动前先清空旧的高亮
+        // 清理旧高亮
         nodes.forEach(n => n && n.classList.remove('node-active'));
         branches.forEach(b => b.classList.remove('node-active'));
         if (animationInterval) clearInterval(animationInterval);
 
-        let step = 0;
-        const randomBranchIndex = Math.floor(Math.random() * 3);
+        // ==========================================
+        // 核心修复：真实意图识别 (绝不使用随机数)
+        // ==========================================
+        let activeBranchIndex = 0; // 默认匹配【症状诊断】
+        
+        // 将用户的提问转为字符串进行精准匹配
+        const queryText = String(userQuery || "");
+        
+        if (/(防|治|药|救|怎么办|农药)/.test(queryText)) {
+            activeBranchIndex = 2; // 命中【防治建议】
+        } else if (/(原因|怎么得的|为什么|引起|诱因)/.test(queryText)) {
+            activeBranchIndex = 1; // 命中【发病原因】
+        } else {
+            activeBranchIndex = 0; // 命中【症状诊断】
+        }
+        // ==========================================
 
+        let step = 0;
         animationInterval = setInterval(() => {
             if (step > 0 && nodes[step - 1]) nodes[step - 1].classList.remove('node-active');
             if (step === 3) branches.forEach(b => b.classList.remove('node-active'));
 
             if (step === 2) {
-                branches[randomBranchIndex].classList.add('node-active');
+                // 精准点亮计算出的真实分支
+                branches[activeBranchIndex].classList.add('node-active');
             } else if (step < 5) {
                 nodes[step].classList.add('node-active');
             } else {
@@ -262,29 +62,34 @@
                 clearInterval(animationInterval);
             }
             step++;
-        }, 1200); // 调整流转速度，适配真实大模型等待时间
+        }, 1200); 
     }
 
-    // 【技术亮点】劫持浏览器的 fetch API 监听扣子 SDK 的底层通信
+    // 劫持浏览器的 fetch API，抓取真实数据包
     const originalFetch = window.fetch;
     window.fetch = async function(...args) {
         const requestUrl = args[0];
         
-        // 当监测到 SDK 向扣子发送了真实的聊天请求时，立刻触发大屏流转！
         if (typeof requestUrl === 'string' && requestUrl.includes('api.coze.cn/v3/chat')) {
-            // 确保不会因为预检请求(OPTIONS)误触发，只在提交数据(POST)时触发
             const requestInit = args[1];
             if (requestInit && requestInit.method === 'POST') {
-                console.log("拦截到真实用户提问，触发工作流可视化引擎！");
-                triggerRealAnimation();
+                try {
+                    // 解析发往服务器的数据包，提取用户发出的文本
+                    const requestBody = requestInit.body || "";
+                    // 直接将整个数据包当做字符串解析，防止因为扣子数据结构嵌套过深导致报错
+                    const rawText = decodeURIComponent(requestBody); 
+                    console.log("拦截到的数据包内容:", rawText);
+                    
+                    // 触发动画，并把真实内容传进去
+                    triggerRealAnimation(rawText);
+                } catch (e) {
+                    triggerRealAnimation("");
+                }
             }
         }
-        // 放行原始请求，保证对话功能正常
         return originalFetch.apply(this, args);
     };
-    // =========================================================
 
-    // SDK 初始化与鉴权逻辑保持不变
     async function initCoze() {
         try {
             const response = await fetch('/api/getToken');
@@ -352,5 +157,3 @@
 
     initCoze();
 </script>
-</body>
-</html>
