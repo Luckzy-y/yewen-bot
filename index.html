@@ -120,7 +120,7 @@
 </div>
 <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.19/libs/cn/index.js"></script>
 <script>
-    // 【唯一修改点】：包装一个 async 函数来先拿 Token，再启动你的原版 SDK
+    // 包装一个 async 函数来先拿 Token，再启动原版 SDK
     async function initCoze() {
         try {
             // 1. 悄悄去 Vercel 后端拿钥匙 (绝对安全)
@@ -128,17 +128,17 @@
             const data = await response.json();
             const safeToken = data.token; 
 
-            // 2. 原封不动地启动你的 SDK
+            // 2. 原封不动地启动 SDK
             new CozeWebSDK.WebChatClient({
                 config: {
                     type: 'bot',
-                    bot_id: '7598192873783246882', // 填入你的真实 bot_id
+                    bot_id: '7598192873783246882', // 真实 bot_id
                     isIframe: false,
                 },
                 auth: {
                     type: 'token',
-                    token: safeToken, // 【变化】：这里换成动态拿到的 safeToken
-                    onRefreshToken: async () => safeToken // 【变化】：刷新时也用 safeToken
+                    token: safeToken, // 动态拿到的 safeToken
+                    onRefreshToken: async () => safeToken // 刷新时也用 safeToken
                 },
                 userInfo: {
                     id: 'user',
@@ -162,7 +162,7 @@
                 }
             });
             
-            // 3. 完美保留你的额外保险样式注入
+           
             setTimeout(() => {
                 const style = document.createElement('style');
                 style.textContent = `
