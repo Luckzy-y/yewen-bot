@@ -32,6 +32,7 @@
             padding: 1.5rem;
             box-shadow: 2px 0 10px rgba(0,0,0,0.05);
             z-index: 1;
+            position: relative; /* 关键：让监控面板以此为基准进行绝对定位 */
         }
         .intro h1 {
             color: #2c5e2e;
@@ -51,7 +52,7 @@
             margin-top: 0.5rem;
         }
         /* 图标🌾样式保持不变 */
-        .intro > div:first-child {
+        .intro > div:nth-child(2) {
             font-size: 4rem;        
             line-height: 1.2;       
             margin-bottom: 0.1rem;  
@@ -63,26 +64,26 @@
         }
         
         /* ========================================================= */
-        /* 修改：移动工作流监控面板至左上角，并使布局更紧凑 */
+        /* 修改：意图感知监控面板 - 固定在左侧面板左上角，极限紧凑版 */
         /* ========================================================= */
         .rag-monitor {
             position: absolute;
-            top: 20px; /* 距离顶部 20px */
-            left: 20px; /* 距离左侧 20px */
-            width: 320px; /* 紧凑宽度 */
-            background: white;
-            border-radius: 12px;
-            padding: 15px 20px;
-            box-shadow: 0 5px 20px rgba(44, 94, 46, 0.05);
+            top: 15px; 
+            left: 10px; 
+            width: 240px; /* 完美嵌入 260px 的侧边栏 */
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 12px;
+            box-shadow: 0 4px 15px rgba(44, 94, 46, 0.06);
             border: 1px solid #e0ebdd;
-            pointer-events: none; /* 防止遮挡用户的点击操作 */
-            z-index: 10; /* 确保在最上层 */
+            pointer-events: none;
+            z-index: 10;
         }
         .monitor-header {
-            font-size: 0.9rem; /* 字体减小 */
+            font-size: 0.8rem; 
             color: #2c5e2e;
             font-weight: bold;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
         }
@@ -91,7 +92,7 @@
             height: 8px;
             background-color: #4CAF50;
             border-radius: 50%;
-            margin-right: 8px;
+            margin-right: 6px;
             box-shadow: 0 0 6px #4CAF50;
             animation: pulse 1.5s infinite;
         }
@@ -103,46 +104,44 @@
         .workflow-box {
             display: flex;
             flex-direction: column;
-            gap: 10px; /* 间隔减小 */
+            gap: 8px;
         }
         .wf-node {
             background: #f5f9f0;
-            border: 1px dashed #c5d8c6; /* 边框变细 */
-            padding: 8px;
+            border: 1px dashed #c5d8c6;
+            padding: 6px;
             border-radius: 6px;
             text-align: center;
             color: #666;
-            font-size: 0.85rem; /* 字体减小 */
+            font-size: 0.75rem; 
             transition: all 0.4s ease;
         }
         .wf-branches {
             display: flex;
-            gap: 8px; /* 间隔减小 */
+            gap: 5px; 
             justify-content: space-between;
         }
         .wf-branch-node {
             flex: 1;
             background: #f5f9f0;
-            border: 1px dashed #c5d8c6; /* 边框变细 */
-            padding: 8px 3px;
-            border-radius: 6px;
+            border: 1px dashed #c5d8c6;
+            padding: 6px 0;
+            border-radius: 4px;
             text-align: center;
             color: #666;
-            font-size: 0.75rem; /* 字体减小 */
+            font-size: 0.65rem; 
             transition: all 0.4s ease;
         }
-        /* 激活状态的高亮特效保持不变 */
         .node-active {
             background: #e8f5e9 !important;
             border: 1px solid #4CAF50 !important;
             color: #1B5E20 !important;
             font-weight: bold;
             transform: scale(1.02);
-            box-shadow: 0 4px 10px rgba(76, 175, 80, 0.15);
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.15);
         }
         /* ========================================================= */
 
-        /* 覆盖扣子SDK的悬浮球和窗口位置逻辑不需修改 */
         .coze-chat-ball {
             position: fixed !important;
             right: 30px !important;
@@ -160,7 +159,6 @@
             border-radius: 16px !important;
             box-shadow: 0 8px 28px rgba(0,0,0,0.2) !important;
         }
-        /* 移动端适配 */
         @media (max-width: 768px) {
             .coze-chat-window {
                 width: 90% !important;
@@ -181,14 +179,32 @@
                 padding: 1rem;
             }
             .intro h1 { font-size: 1.2rem; }
-            .intro > div:first-child { font-size: 3.2rem; }
-            .rag-monitor { display: none; } /* 移动端空间小，隐藏监控 */
+            .intro > div:nth-child(2) { font-size: 3.2rem; }
+            .rag-monitor { display: none; } /* 移动端隐藏面板 */
         }
     </style>
 </head>
 <body>
 <div class="app-container">
     <div class="intro">
+        <div class="rag-monitor">
+            <div class="monitor-header">
+                <div class="status-dot"></div>
+                工作流诊断引擎状态
+            </div>
+            <div class="workflow-box">
+                <div class="wf-node" id="wf-1">📷 视觉特征提取</div>
+                <div class="wf-node" id="wf-2">🔀 意图路由分发</div>
+                <div class="wf-branches">
+                    <div class="wf-branch-node" id="wf-b1">🔍症状</div>
+                    <div class="wf-branch-node" id="wf-b2">🔬原因</div>
+                    <div class="wf-branch-node" id="wf-b3">💊防治</div>
+                </div>
+                <div class="wf-node" id="wf-3">🧠 RAG 检索比对</div>
+                <div class="wf-node" id="wf-4">📝 生成诊断报告</div>
+            </div>
+        </div>
+
         <div>🌾</div>
         <h1>叶问</h1>
         <p>作物病害智能诊断助手</p>
@@ -196,37 +212,16 @@
         <p style="margin-top: 1rem; font-size: 0.85rem;">👉 右侧悬浮球，点击问诊</p>
     </div>
     
-    <div class="right-area">
-        <div class="rag-monitor">
-            <div class="monitor-header">
-                <div class="status-dot"></div>
-                核心引擎：diagnosis_main 工作流监控
-            </div>
-            <div class="workflow-box">
-                <div class="wf-node" id="wf-1">📷 多模态视觉特征提取</div>
-                <div class="wf-node" id="wf-2">🔀 LLM 意图路由分发</div>
-                <div class="wf-branches">
-                    <div class="wf-branch-node" id="wf-b1">🔍症状诊断</div>
-                    <div class="wf-branch-node" id="wf-b2">🔬原因识别</div>
-                    <div class="wf-branch-node" id="wf-b3">💊防治建议</div>
-                </div>
-                <div class="wf-node" id="wf-3">🧠 RAG 检索与上下文对齐</div>
-                <div class="wf-node" id="wf-4">📝 诊断报告生成</div>
-            </div>
-        </div>
-    </div>
+    <div class="right-area"></div>
 </div>
 
 <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.19/libs/cn/index.js"></script>
 <script>
-    // =========================================================
-    // 模拟脚本保持不变
-    // =========================================================
     function startWorkflowSimulation() {
         const nodes = [
             document.getElementById('wf-1'),
             document.getElementById('wf-2'),
-            null, // 占位，给分支用
+            null, 
             document.getElementById('wf-3'),
             document.getElementById('wf-4')
         ];
@@ -261,21 +256,17 @@
     }
     
     window.addEventListener('DOMContentLoaded', startWorkflowSimulation);
-    // =========================================================
 
-    // 【原始鉴权和SDK启动逻辑原封不动】
     async function initCoze() {
         try {
-            // 1. 悄悄去 Vercel 后端拿钥匙 (绝对安全)
             const response = await fetch('/api/getToken');
             const data = await response.json();
             const safeToken = data.token; 
 
-            // 2. 原封不动地启动你的 SDK
             new CozeWebSDK.WebChatClient({
                 config: {
                     type: 'bot',
-                    bot_id: '7598192873783246882', // 你的真实 bot_id
+                    bot_id: '7598192873783246882',
                     isIframe: false,
                 },
                 auth: {
@@ -305,7 +296,6 @@
                 }
             });
             
-            // 3. 完美保留你的额外保险样式注入
             setTimeout(() => {
                 const style = document.createElement('style');
                 style.textContent = `
@@ -332,7 +322,6 @@
         }
     }
 
-    // 执行初始化
     initCoze();
 </script>
 </body>
